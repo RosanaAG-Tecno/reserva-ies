@@ -5,22 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>IES La Fresneda · Reservas de aulas</title>
 
-  <!-- Tailwind (solo utilidades, la rejilla se hace con CSS inline) -->
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
-    .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .pill { display:inline-flex; align-items:center; gap:.375rem; padding: .125rem .5rem; border-radius: 9999px; font-size: .75rem; line-height: 1rem; }
-    .pill-af { background:#eef2ff; color:#3730a3 }   /* Aula del Futuro */
-    .pill-ra { background:#fff7ed; color:#7c2d12 }   /* Radio */
-    .pill-bi { background:#ecfeff; color:#155e75 }   /* Biblioteca */
-    .slot { min-height: 42px; background: #fff; border: 1px dashed #e5e7eb; border-radius: .75rem; }
-    .btn { border-radius: .75rem; padding:.5rem .75rem; border:1px solid #e5e7eb; background:#fff }
-    .btn[aria-current="true"] { background:#059669; color:#fff; border-color:#059669 }
-    .btn:hover { background:#f8fafc }
+    .mono{font-variant-numeric:tabular-nums}
+    .pill{display:inline-flex;align-items:center;gap:.375rem;padding:.125rem .5rem;border-radius:9999px;font-size:.75rem;line-height:1rem}
+    .pill-af{background:#eef2ff;color:#3730a3}
+    .pill-ra{background:#fff7ed;color:#7c2d12}
+    .pill-bi{background:#ecfeff;color:#155e75}
+    .slot{min-height:42px;background:#fff;border:1px dashed #e5e7eb;border-radius:.75rem}
+    .btn{border-radius:.75rem;padding:.5rem .75rem;border:1px solid #e5e7eb;background:#fff}
+    .btn[aria-current="true"]{background:#059669;color:#fff;border-color:#059669}
+    .btn:hover{background:#f8fafc}
   </style>
 </head>
-
 <body class="bg-gradient-to-b from-green-50 to-teal-50 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 py-6">
     <!-- Header -->
@@ -49,7 +46,7 @@
     </div>
 
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-[360px,1fr] gap-6">
-      <!-- Panel Izquierdo (formulario) -->
+      <!-- Formulario -->
       <aside class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
         <h2 class="text-lg font-medium mb-2">Crear reserva</h2>
 
@@ -122,11 +119,10 @@
               <div class="flex items-center gap-1"><span class="h-2 w-2 rounded-full inline-block bg-cyan-600"></span> Biblioteca</div>
             </div>
           </div>
-
         </div>
       </aside>
 
-      <!-- Panel Derecho (calendario) -->
+      <!-- Calendario -->
       <main class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
         <div id="grid"></div>
       </main>
@@ -137,12 +133,9 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-    import {
-      getFirestore, collection, addDoc, deleteDoc, doc, query, where,
-      getDocs, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
-    // === CONFIG ===
+    // --- Firebase ---
     const firebaseConfig = {
       apiKey: "AIzaSyCzoZJD3TZyK9eWGtLKKZsxdqtOwV51tY0",
       authDomain: "reservas-ies-fresneda.firebaseapp.com",
@@ -151,23 +144,14 @@
       messagingSenderId: "536472576233",
       appId: "1:536472576233:web:4571c2f9de71c9ad0a1078"
     };
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db   = getFirestore(app);
     await signInAnonymously(auth);
 
-    // --- Constantes ---
-    const TRAMOS = [
-      "08:15–09:10","09:10–10:05","10:25–11:20","11:20–12:15","12:35–13:30","13:30–14:25"
-    ];
-    const WD = ["D","L","M","X","J","V","S"]; // nombre corto (para cabeceras)
-
-    // --- Estado ---
-    const state = {
-      view: "week",           // 'day' | 'week' | 'month'
-      baseDate: today(),
-    };
+    // --- Constantes / Estado ---
+    const TRAMOS = ["08:15–09:10","09:10–10:05","10:25–11:20","11:20–12:15","12:35–13:30","13:30–14:25"];
+    const state = { view:"week", baseDate: today() };
 
     // --- DOM ---
     const selAula   = document.getElementById("selAula");
@@ -181,35 +165,31 @@
     const msg       = document.getElementById("msg");
     const grid      = document.getElementById("grid");
     const rangeLabel= document.getElementById("rangeLabel");
+    const btnPrev   = document.getElementById("btnPrev");
+    const btnNext   = document.getElementById("btnNext");
+    const btnToday  = document.getElementById("btnToday");
+    const btnDay    = document.getElementById("btnDay");
+    const btnWeek   = document.getElementById("btnWeek");
+    const btnMonth  = document.getElementById("btnMonth");
 
-    const btnPrev = document.getElementById("btnPrev");
-    const btnNext = document.getElementById("btnNext");
-    const btnToday= document.getElementById("btnToday");
-    const btnDay  = document.getElementById("btnDay");
-    const btnWeek = document.getElementById("btnWeek");
-    const btnMonth= document.getElementById("btnMonth");
-
-    // rellenar tramos
     selTramo.innerHTML = TRAMOS.map((t,i)=>`<option value="${i}">${t}</option>`).join("");
-    // default fechas
     dateDesde.value = toISOinput(state.baseDate);
     dateHasta.value = toISOinput(state.baseDate);
 
-    // --- Navegación ---
-    btnPrev.onclick = ()=>{ shift(-1); };
-    btnNext.onclick = ()=>{ shift(1); };
-    btnToday.onclick= ()=>{ state.baseDate = today(); render(); };
-    btnDay.onclick  = ()=>{ setView("day"); };
-    btnWeek.onclick = ()=>{ setView("week"); };
-    btnMonth.onclick= ()=>{ setView("month"); };
-    selAula.onchange = ()=> render();
+    btnPrev.onclick = ()=> shift(-1);
+    btnNext.onclick = ()=> shift(1);
+    btnToday.onclick= ()=> { state.baseDate=today(); render(); }
+    btnDay.onclick  = ()=> setView("day");
+    btnWeek.onclick = ()=> setView("week");
+    btnMonth.onclick= ()=> setView("month");
+    selAula.onchange= ()=> render();
+
+    btnSave.onclick = saveReservation;
 
     function setView(v){
       state.view=v;
       [btnDay,btnWeek,btnMonth].forEach(b=>b.setAttribute("aria-current","false"));
-      if (v==='day')   btnDay.setAttribute("aria-current","true");
-      if (v==='week')  btnWeek.setAttribute("aria-current","true");
-      if (v==='month') btnMonth.setAttribute("aria-current","true");
+      (v==='day'?btnDay:v==='week'?btnWeek:btnMonth).setAttribute("aria-current","true");
       render();
     }
     function shift(n){
@@ -217,16 +197,14 @@
       if (state.view==='day')   d.setDate(d.getDate()+n);
       if (state.view==='week')  d.setDate(d.getDate()+7*n);
       if (state.view==='month') d.setMonth(d.getMonth()+n);
-      state.baseDate = d;
-      render();
+      state.baseDate = d; render();
     }
 
-    // --- Guardar ---
-    btnSave.onclick = async () => {
-      msg.textContent = "";
+    async function saveReservation(){
+      msg.textContent="";
       const profesor = inpProf.value.trim();
       const materia  = inpMat.value.trim();
-      const pin      = (inpPIN.value || "").trim();
+      const pin      = (inpPIN.value||"").trim();
       const aula     = selAula.value;
       const tramo    = Number(selTramo.value);
       let d0 = parseISO(dateDesde.value);
@@ -238,143 +216,62 @@
       }
       if (d1 < d0) [d0,d1] = [d1,d0];
 
-      const rpts = [...document.querySelectorAll(".rpt:checked")].map(e=>Number(e.value)); // 0..6 (D..S)
-      let saved = 0;
+      const rpts = [...document.querySelectorAll(".rpt:checked")].map(e=>Number(e.value));
+      let saved=0;
+
+      // Cargamos todas las reservas del aula y filtramos por rango (para evitar índices compuestos)
+      const actuales = await loadAula(selAula.value);
 
       for (let d=new Date(d0); d<=d1; d.setDate(d.getDate()+1)) {
         if (rpts.length && !rpts.includes(d.getDay())) continue;
-
         const fecha = fmtISO(d);
-        // Colisión
-        const qCol = query(
-          collection(db,"reservas"),
-          where("aula","==",aula),
-          where("fecha","==",fecha),
-          where("tramo","==",tramo)
-        );
-        const colSnap = await getDocs(qCol);
-        if (!colSnap.empty) continue; // existe ya una reserva
+
+        const existe = actuales.some(r => r.aula===aula && r.fecha===fecha && r.tramo===tramo);
+        if (existe) continue;
 
         await addDoc(collection(db,"reservas"),{
-          aula, fecha, tramo,
-          profesor, materia,
-          pin: pin || "",
-          created: serverTimestamp()
+          aula, fecha, tramo, profesor, materia, pin:pin||"", created:serverTimestamp()
         });
         saved++;
       }
       msg.textContent = saved ? `Se guardaron ${saved} reserva(s).` : "No se guardó ninguna (ya estaban ocupadas).";
       msg.className = saved ? "text-sm text-emerald-700" : "text-sm text-amber-700";
       render();
-    };
-
-    // =========================
-    //   Carga y renderizado
-    // =========================
-    async function loadByRange(aula, d0, d1) {
-      // Consultamos por aula y por fecha en el rango
-      const q1 = query(
-        collection(db,"reservas"),
-        where("aula","==",aula),
-        where("fecha",">=", fmtISO(d0)),
-        where("fecha","<=", fmtISO(d1))
-      );
-      const snap = await getDocs(q1);
-      return snap.docs.map(d=>({id:d.id, ...d.data()}));
     }
 
-    function chip(r) {
+    // ===== Carga sin índices compuestos =====
+    async function loadAula(aula){
+      const qAula = query(collection(db,"reservas"), where("aula","==",aula));
+      const s = await getDocs(qAula);
+      return s.docs.map(d=>({id:d.id, ...d.data()}));
+    }
+    async function loadByRange(aula, d0, d1){
+      // Trae todo el aula y filtra por rango en el cliente
+      const all = await loadAula(aula);
+      const min = fmtISO(d0), max = fmtISO(d1);
+      return all.filter(r => r.fecha>=min && r.fecha<=max);
+    }
+
+    // ===== Render =====
+    function headerInline(cols){
+      const n = cols.length-1;
+      return `<div style="display:grid;grid-template-columns:120px repeat(${n},1fr);gap:.5rem;margin-bottom:.25rem" class="text-sm font-semibold text-gray-600">
+        ${cols.map((c,i)=>`<div style="text-align:${i? 'center':'left'}">${c}</div>`).join("")}
+      </div>`;
+    }
+    function chip(r){
       const label = `${r.profesor} · ${r.materia}`;
       const cls = r.aula==="Aula del Futuro" ? "pill pill-af"
                 : r.aula==="Radio"          ? "pill pill-ra"
                 : "pill pill-bi";
-      return `<span class="${cls}" data-id="${r.id}" data-pin="${r.pin||""}" data-fecha="${r.fecha}" data-tramo="${r.tramo}">
-        ${label}
-      </span>`;
+      return `<span class="${cls}" data-id="${r.id}" data-pin="${r.pin||""}">${label}</span>`;
     }
-
-    function bindDeleteHandlers(){
-      grid.querySelectorAll('[data-id]').forEach(el=>{
-        el.addEventListener('click', async ()=>{
-          const pin = el.getAttribute('data-pin') || "";
-          if (pin) {
-            const p = prompt("Introduce el PIN para borrar la reserva:");
-            if (p===null) return;
-            if (p !== pin) { alert("PIN incorrecto."); return; }
-          } else if (!confirm("¿Eliminar esta reserva?")) {
-            return;
-          }
-          await deleteDoc(doc(db,"reservas", el.getAttribute('data-id')));
-          render();
-        });
-      });
-    }
-
-    // ======== RENDER con columna de franjas (inline CSS) ========
-    async function render() {
-      const aula = selAula.value;
-      let d0, d1, html="";
-
-      if (state.view==='day') {
-        d0 = new Date(state.baseDate); d0.setHours(0,0,0,0);
-        d1 = new Date(d0);
-      } else if (state.view==='week') {
-        d0 = startOfWeek(state.baseDate);
-        d1 = endOfWeek(state.baseDate);
-      } else {
-        d0 = startOfMonth(state.baseDate);
-        d1 = endOfMonth(state.baseDate);
-      }
-
-      if (state.view==='day') {
-        rangeLabel.textContent = fmtISO(d0);
-      } else if (state.view==='week') {
-        rangeLabel.textContent = `Semana del ${fmtISO(d0)} al ${fmtISO(d1)}`;
-      } else {
-        const m = state.baseDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
-        rangeLabel.textContent = m.charAt(0).toUpperCase()+m.slice(1);
-      }
-
-      const data = await loadByRange(aula, d0, d1);
-      const idx = new Map();
-      for (const r of data) {
-        const key = `${r.fecha}|${r.tramo}`;
-        if (!idx.has(key)) idx.set(key, []);
-        idx.get(key).push(r);
-      }
-
-      if (state.view==='day') {
-        const days = [d0];
-        html += renderHeaderInline(['Franja', WD[(d0.getDay()+6)%7]]);
-        html += renderRowsForDaysInline(days, idx);
-      } else if (state.view==='week') {
-        const days = [...Array(7)].map((_,i)=> addDays(d0,i));
-        const weekDays = days.slice(1,6); // L-V
-        html += renderHeaderInline(['Franja','L','M','X','J','V']);
-        html += renderRowsForDaysInline(weekDays, idx);
-      } else {
-        html += renderMonthInline(d0, idx);
-      }
-
-      grid.innerHTML = html;
-      bindDeleteHandlers();
-    }
-
-    function renderHeaderInline(cols) {
-      const n = cols.length-1;
-      return `
-      <div style="display:grid;grid-template-columns:120px repeat(${n},1fr);gap:.5rem;margin-bottom:.25rem"
-           class="text-sm font-semibold text-gray-600">
-        ${cols.map((c,i)=>`<div style="text-align:${i? 'center':'left'}">${c}</div>`).join('')}
-      </div>`;
-    }
-
-    function renderRowsForDaysInline(days, idx) {
-      let html = '';
-      for (let t=0; t<TRAMOS.length; t++) {
+    function rowsForDays(days, idx){
+      let html="";
+      for (let t=0;t<TRAMOS.length;t++){
         html += `<div style="display:grid;grid-template-columns:120px repeat(${days.length},1fr);gap:.5rem;align-items:stretch;margin-bottom:.5rem">`;
         html += `<div class="mono text-sm text-gray-600">${TRAMOS[t]}</div>`;
-        for (const d of days) {
+        for (const d of days){
           const key = `${fmtISO(d)}|${t}`;
           const items = idx.get(key)||[];
           html += `<div class="slot p-2">${ items.length ? items.map(chip).join(' ') : `<span class="text-xs text-gray-400">— libre —</span>`}</div>`;
@@ -383,27 +280,22 @@
       }
       return html;
     }
-
-    function renderMonthInline(firstOfMonth, idx) {
+    function monthGrid(first, idx){
       let html = `
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-bottom:.25rem"
-             class="text-sm font-semibold text-gray-600 text-center">
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-bottom:.25rem" class="text-sm font-semibold text-gray-600 text-center">
           ${['L','M','X','J','V','S','D'].map(x=>`<div>${x}</div>`).join('')}
         </div>`;
-
-      const start = startOfWeek(firstOfMonth);
-      const last  = endOfWeek(endOfMonth(firstOfMonth));
+      const start = startOfWeek(first), last = endOfWeek(endOfMonth(first));
       let d = new Date(start);
-
       html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem">`;
-      while (d <= last) {
-        const isOther = d.getMonth()!==firstOfMonth.getMonth();
-        let chipsHTML = '';
-        for (let t=0; t<TRAMOS.length; t++) {
-          const items = idx.get(`${fmtISO(d)}|${t}`) || [];
+      while (d<=last){
+        const other = d.getMonth()!==first.getMonth();
+        let chipsHTML="";
+        for (let t=0;t<TRAMOS.length;t++){
+          const items = idx.get(`${fmtISO(d)}|${t}`)||[];
           chipsHTML += items.map(chip).join(' ');
         }
-        html += `<div class="rounded-xl border p-2 min-h-[96px] ${isOther?'bg-gray-50':''}">
+        html += `<div class="rounded-xl border p-2 min-h-[96px] ${other?'bg-gray-50':''}">
           <div class="text-xs text-gray-500 mb-1 mono">${d.getDate().toString().padStart(2,'0')}</div>
           <div class="space-y-1">${chipsHTML || `<div class="text-[11px] text-gray-400">— libre —</div>`}</div>
         </div>`;
@@ -412,19 +304,75 @@
       html += `</div>`;
       return html;
     }
+    function bindDeletes(){
+      grid.querySelectorAll('[data-id]').forEach(el=>{
+        el.addEventListener('click', async ()=>{
+          const pin = el.getAttribute('data-pin')||"";
+          if (pin){
+            const p = prompt("Introduce el PIN para borrar la reserva:");
+            if (p===null) return;
+            if (p!==pin){ alert("PIN incorrecto."); return; }
+          } else if (!confirm("¿Eliminar esta reserva?")) { return; }
+          await deleteDoc(doc(db,"reservas", el.getAttribute('data-id')));
+          render();
+        });
+      });
+    }
 
-    // --------- utilidades fecha ---------
+    async function render(){
+      try{
+        const aula = selAula.value;
+        let d0,d1,html="";
+        if (state.view==='day'){ d0=new Date(state.baseDate);d0.setHours(0,0,0,0); d1=new Date(d0); }
+        else if (state.view==='week'){ d0=startOfWeek(state.baseDate); d1=endOfWeek(state.baseDate); }
+        else { d0=startOfMonth(state.baseDate); d1=endOfMonth(state.baseDate); }
+
+        // Etiqueta de rango
+        if (state.view==='day') rangeLabel.textContent = fmtISO(d0);
+        else if (state.view==='week') rangeLabel.textContent = `Semana del ${fmtISO(d0)} al ${fmtISO(d1)}`;
+        else {
+          const m = state.baseDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+          rangeLabel.textContent = m.charAt(0).toUpperCase()+m.slice(1);
+        }
+
+        const data = await loadByRange(aula, d0, d1); // sin índices
+        const idx = new Map();
+        for (const r of data){
+          const key = `${r.fecha}|${r.tramo}`;
+          if (!idx.has(key)) idx.set(key,[]);
+          idx.get(key).push(r);
+        }
+
+        if (state.view==='day'){
+          html += headerInline(['Franja','Día']);
+          html += rowsForDays([d0], idx);
+        } else if (state.view==='week'){
+          const days = [...Array(5)].map((_,i)=> addDays(d0,i+1)); // L-V
+          html += headerInline(['Franja','L','M','X','J','V']);
+          html += rowsForDays(days, idx);
+        } else {
+          html += monthGrid(d0, idx);
+        }
+
+        grid.innerHTML = html;
+        bindDeletes();
+      } catch(e){
+        console.error(e);
+        grid.innerHTML = `<div class="text-rose-700">Error de carga: ${e.message}</div>`;
+      }
+    }
+
+    // Utilidades de fecha
     function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
     function fmtISO(d){ return d.toISOString().slice(0,10); }
     function toISOinput(d){ return fmtISO(d); }
     function parseISO(s){ const [Y,M,D]=s.split('-').map(Number); const d=new Date(Y,M-1,D); d.setHours(0,0,0,0); return d; }
-    function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x; }
-    function startOfWeek(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; } // Lunes
+    function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x; }
+    function startOfWeek(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; }
     function endOfWeek(d){ const x=startOfWeek(d); x.setDate(x.getDate()+6); return x; }
     function startOfMonth(d){ const x=new Date(d.getFullYear(), d.getMonth(), 1); x.setHours(0,0,0,0); return x; }
     function endOfMonth(d){ const x=new Date(d.getFullYear(), d.getMonth()+1, 0); x.setHours(0,0,0,0); return x; }
 
-    // Primer render
     render();
   </script>
 </body>
