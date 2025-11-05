@@ -1,137 +1,140 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IES La Fresneda · Reservas de aulas</title>
-  <link rel="icon" href="data:," />
-  <!-- Tailwind (CDN) para maquetado rápido -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
   <style>
-    /* Pastel agradable tipo IES */
-    body { background: linear-gradient(180deg,#f2fff3 0%, #eef9ff 100%); }
-    .card { background: #fff; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,.06); }
-    .slot-cell { min-height: 76px; border-radius: 12px; border: 1px dashed #e5e7eb; background: #ffffffaa; }
-    .slot-pill { display:inline-block; padding:.2rem .5rem; border-radius: 8px; font-size: .8rem; background:#e6fffb; }
-    .week-head th { color:#334155; font-weight:600; }
-    .label-muted { color:#6b7280; font-size:.8rem; }
+    .slot { border: 1px dashed rgba(0,0,0,.08); border-radius: .6rem; min-height: 64px; }
+    .chip { border-radius: 9999px; padding:.25rem .5rem; font-size:.75rem; line-height:1rem; display:inline-flex; gap:.35rem; align-items:center; }
+    .chip-btn { cursor:pointer; }
+    .btn { border-radius:.6rem; padding:.5rem .75rem; border:1px solid rgba(0,0,0,.1); background:#fff; }
+    .btn-active { background:#10b981; color:#fff; border-color:transparent; }
+    .btn-ghost { background:transparent; }
+    .col-head { font-weight:600; color:#374151; }
+    .mono { font-variant-numeric: tabular-nums; }
   </style>
 </head>
-<body class="text-slate-800">
+<body class="bg-gradient-to-br from-emerald-50/40 to-cyan-50 min-h-screen text-gray-800">
 
-  <!-- Cabecera -->
-  <header class="w-full max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-    <img src="https://raw.githubusercontent.com/rosanaag-tecno/reservas/main/IES%20La%20Fresneda.png" alt="IES La Fresneda" class="h-7" />
-    <h1 class="text-xl sm:text-2xl font-semibold">IES La Fresneda · Reservas de aulas</h1>
-    <div class="ml-auto flex items-center gap-2">
-      <button id="btnPrev" class="px-3 py-2 rounded-lg bg-white border hover:bg-slate-50">←</button>
-      <button id="btnToday" class="px-3 py-2 rounded-lg bg-white border hover:bg-slate-50">Hoy</button>
-      <button id="btnNext" class="px-3 py-2 rounded-lg bg-white border hover:bg-slate-50">→</button>
-      <span id="weekTitle" class="ml-2 text-sm label-muted"></span>
+  <div class="max-w-7xl mx-auto p-4 sm:p-6">
+    <header class="flex items-center justify-between gap-4 mb-4">
+      <h1 class="text-xl sm:text-2xl font-semibold">
+        IES La Fresneda · Reservas de aulas
+      </h1>
+
+      <div class="flex items-center gap-2">
+        <button id="btnPrev" class="btn btn-ghost" title="Anterior">←</button>
+        <button id="btnToday" class="btn">Hoy</button>
+        <button id="btnNext" class="btn btn-ghost" title="Siguiente">→</button>
+
+        <div class="mx-2 text-sm text-gray-600" id="rangeLabel"></div>
+
+        <div class="flex gap-1">
+          <button id="tabDay"    class="btn">Día</button>
+          <button id="tabWeek"   class="btn btn-active">Semana</button>
+          <button id="tabMonth"  class="btn">Mes</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[360px,1fr] gap-6">
+      <!-- FORM -->
+      <aside class="bg-white rounded-2xl shadow-sm p-4 sm:p-5">
+        <h2 class="text-lg font-semibold mb-4">Crear reserva</h2>
+
+        <form id="frm" class="space-y-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Profesor/a</label>
+            <input id="inpProf" class="w-full rounded-lg border p-2" placeholder="Nombre y apellidos" required>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Materia</label>
+            <input id="inpMate" class="w-full rounded-lg border p-2" placeholder="Ej.: Tecnología">
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">PIN (opcional para proteger la reserva)</label>
+            <input id="inpPin" class="w-full rounded-lg border p-2" placeholder="Ej.: 1234" inputmode="numeric" pattern="[0-9]*" maxlength="6">
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Aula</label>
+            <select id="selAula" class="w-full rounded-lg border p-2">
+              <option>Aula del Futuro</option>
+              <option>Radio</option>
+              <option>Biblioteca</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Desde</label>
+              <input id="inpDesde" type="date" class="w-full rounded-lg border p-2">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Hasta</label>
+              <input id="inpHasta" type="date" class="w-full rounded-lg border p-2">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Franja horaria</label>
+            <select id="selTramo" class="w-full rounded-lg border p-2 mono">
+              <option value="0">08:15–09:10</option>
+              <option value="1">09:10–10:05</option>
+              <option value="2">10:25–11:20</option>
+              <option value="3">11:20–12:15</option>
+              <option value="4">12:35–13:30</option>
+              <option value="5">13:30–14:25</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-2">Repetir por días</label>
+            <div class="grid grid-cols-7 gap-2 text-sm">
+              <label class="flex items-center gap-1"><input type="checkbox" class="rep" value="1"> L</label>
+              <label class="flex items-center gap-1"><input type="checkbox" class="rep" value="2"> M</label>
+              <label class="flex items-center gap-1"><input type="checkbox" class="rep" value="3"> X</label>
+              <label class="flex items-center gap-1"><input type="checkbox" class="rep" value="4"> J</label>
+              <label class="flex items-center gap-1"><input type="checkbox" class="rep" value="5"> V</label>
+              <label class="flex items-center gap-1"><input type="checkbox" class="rep" value="6"> S</label>
+              <label class="flex items-center gap-1"><input type="checkbox" class="rep" value="0"> D</label>
+            </div>
+          </div>
+
+          <button class="w-full btn btn-active" id="btnGuardar" type="submit">Guardar</button>
+          <p id="msg" class="text-sm text-emerald-600 hidden mt-2">Se guardaron las reservas.</p>
+
+          <div class="pt-4 text-sm text-gray-600">
+            <h3 class="font-medium mb-1">Leyenda (aulas)</h3>
+            <div class="flex items-center gap-4">
+              <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Aula del Futuro</span>
+              <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Radio</span>
+              <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Biblioteca</span>
+            </div>
+          </div>
+        </form>
+      </aside>
+
+      <!-- GRID -->
+      <main class="bg-white rounded-2xl shadow-sm p-3 sm:p-4" id="grid"></main>
     </div>
-  </header>
+  </div>
 
-  <main class="w-full max-w-6xl mx-auto px-4 pb-16 grid grid-cols-1 lg:grid-cols-[360px,1fr] gap-6">
-    <!-- Panel de creación -->
-    <section class="card p-5">
-      <h2 class="text-lg font-semibold mb-3">Crear reserva</h2>
-
-      <label class="block text-sm mb-1">Profesor/a</label>
-      <input id="iNombre" class="w-full mb-3 p-2.5 border rounded-lg" placeholder="Nombre y apellidos" />
-
-      <label class="block text-sm mb-1">Materia</label>
-      <input id="iMateria" class="w-full mb-3 p-2.5 border rounded-lg" placeholder="Ej.: Tecnología" />
-
-      <label class="block text-sm mb-1">PIN (opcional para proteger la reserva)</label>
-      <input id="iPin" class="w-full mb-3 p-2.5 border rounded-lg" placeholder="Ej.: 1234" />
-
-      <label class="block text-sm mb-1">Aula</label>
-      <select id="iAula" class="w-full mb-3 p-2.5 border rounded-lg">
-        <option>Aula del Futuro</option>
-        <option>Radio</option>
-        <option>Biblioteca</option>
-      </select>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm mb-1">Desde</label>
-          <input type="date" id="iDesde" class="w-full p-2.5 border rounded-lg" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Hasta</label>
-          <input type="date" id="iHasta" class="w-full p-2.5 border rounded-lg" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 mt-3">
-        <div>
-          <label class="block text-sm mb-1">Franja horaria</label>
-          <select id="iFranja" class="w-full p-2.5 border rounded-lg">
-            <option>08:15–09:10</option>
-            <option>09:10–10:05</option>
-            <option>10:25–11:20</option>
-            <option>11:20–12:15</option>
-            <option>12:35–13:30</option>
-            <option>13:30–14:25</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="mt-4">
-        <p class="text-sm font-medium">Repetir por días</p>
-        <div class="grid grid-cols-6 gap-3 mt-2 text-sm">
-          <label class="inline-flex items-center gap-1"><input type="checkbox" class="dayChk" value="1" checked> L</label>
-          <label class="inline-flex items-center gap-1"><input type="checkbox" class="dayChk" value="2"> M</label>
-          <label class="inline-flex items-center gap-1"><input type="checkbox" class="dayChk" value="3" checked> X</label>
-          <label class="inline-flex items-center gap-1"><input type="checkbox" class="dayChk" value="4"> J</label>
-          <label class="inline-flex items-center gap-1"><input type="checkbox" class="dayChk" value="5" checked> V</label>
-          <label class="inline-flex items-center gap-1"><input type="checkbox" class="dayChk" value="0"> D</label>
-        </div>
-      </div>
-
-      <button id="btnGuardar" class="mt-5 w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium">
-        Guardar
-      </button>
-
-      <p id="msg" class="mt-3 text-sm text-slate-600"></p>
-
-      <div class="mt-6">
-        <p class="text-sm font-medium mb-2">Leyenda (aulas)</p>
-        <div class="flex items-center gap-4 text-sm">
-          <span class="inline-flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Aula del Futuro</span>
-          <span class="inline-flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Radio</span>
-          <span class="inline-flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Biblioteca</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Calendario semanal -->
-    <section class="card p-5 overflow-x-auto">
-      <table class="w-full">
-        <thead class="week-head">
-          <tr>
-            <th class="text-left p-2">Franja</th>
-            <th class="text-center p-2">L</th>
-            <th class="text-center p-2">M</th>
-            <th class="text-center p-2">X</th>
-            <th class="text-center p-2">J</th>
-            <th class="text-center p-2">V</th>
-          </tr>
-        </thead>
-        <tbody id="gridBody" class="align-top"></tbody>
-      </table>
-      <p class="mt-2 label-muted">Para borrar una reserva creada por ti, haz clic en su etiqueta e introduce tu PIN.</p>
-    </section>
-  </main>
-
-  <!-- Firebase -->
+  <!-- FIREBASE -->
   <script type="module">
-    // Firebase SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    // ---- Firebase SDK (Web v10+ o v12, CDN) ----
+    import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged }
+                                      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp }
+                                      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // === TU CONFIGURACIÓN (ya la comprobaste) ===
+    // Tu configuración (la que ya generó Firebase)
     const firebaseConfig = {
       apiKey: "AIzaSyCzoZJD3TZyK9eWGtLKKZsxdqtOwV51tY0",
       authDomain: "reservas-ies-fresneda.firebaseapp.com",
@@ -141,208 +144,381 @@
       appId: "1:536472576233:web:4571c2f9de71c9ad0a1078"
     };
 
-    // Init
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    await signInAnonymously(auth);
+    const db   = getFirestore(app);
 
-    // ---------- Utilidades fecha ----------
-    const FRANJAS = [
-      "08:15–09:10",
-      "09:10–10:05",
-      "10:25–11:20",
-      "11:20–12:15",
-      "12:35–13:30",
-      "13:30–14:25",
+    // ---- Estado global UI ----
+    const state = {
+      view: 'week',          // 'day' | 'week' | 'month'
+      baseDate: new Date(),  // fecha ancla del periodo mostrado
+      uid: null,
+    };
+
+    // ---- Utilidades de fecha ----
+    const fmtISO = d => d.toISOString().slice(0,10);
+    const addDays = (d, n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+    const startOfWeek = (d) => { const x=new Date(d); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); x.setHours(0,0,0,0); return x; };
+    const endOfWeek   = (d) => addDays(startOfWeek(d), 6);
+    const startOfMonth = d => new Date(d.getFullYear(), d.getMonth(), 1);
+    const endOfMonth   = d => new Date(d.getFullYear(), d.getMonth()+1, 0);
+
+    const TRAMOS = [
+      "08:15–09:10","09:10–10:05","10:25–11:20","11:20–12:15","12:35–13:30","13:30–14:25"
     ];
+    const WD = ['D','L','M','X','J','V','S'];
 
-    const weekTitle = document.getElementById('weekTitle');
-    let currentMonday = mondayOf(new Date());
-
-    function mondayOf(d) {
-      const dd = new Date(d); dd.setHours(0,0,0,0);
-      const day = dd.getDay(); // 0..6 (0=Dom)
-      const diff = (day === 0 ? -6 : 1 - day);
-      dd.setDate(dd.getDate() + diff);
-      return dd;
-    }
-    function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
-    function fmtISO(d) { return d.toISOString().slice(0,10); }
-    function rangoSemanaTexto(d) {
-      const f1 = addDays(d,0), f2 = addDays(d,6);
-      const fmt = (x)=>x.toLocaleDateString('es-ES',{year:'numeric', month:'2-digit', day:'2-digit'});
-      return `Semana del ${fmt(f1)} al ${fmt(f2)}`;
-    }
-
-    // ---------- UI ----------
-    const gridBody = document.getElementById('gridBody');
+    // ---- DOM ----
+    const grid = document.getElementById('grid');
     const btnPrev  = document.getElementById('btnPrev');
     const btnNext  = document.getElementById('btnNext');
     const btnToday = document.getElementById('btnToday');
+    const tabDay   = document.getElementById('tabDay');
+    const tabWeek  = document.getElementById('tabWeek');
+    const tabMonth = document.getElementById('tabMonth');
+    const rangeLabel = document.getElementById('rangeLabel');
 
-    btnPrev.onclick  = ()=>{ currentMonday = addDays(currentMonday,-7); renderWeek(); };
-    btnNext.onclick  = ()=>{ currentMonday = addDays(currentMonday, 7); renderWeek(); };
-    btnToday.onclick = ()=>{ currentMonday = mondayOf(new Date()); renderWeek(); };
+    // Form
+    const frm       = document.getElementById('frm');
+    const inpProf   = document.getElementById('inpProf');
+    const inpMate   = document.getElementById('inpMate');
+    const inpPin    = document.getElementById('inpPin');
+    const selAula   = document.getElementById('selAula');
+    const inpDesde  = document.getElementById('inpDesde');
+    const inpHasta  = document.getElementById('inpHasta');
+    const selTramo  = document.getElementById('selTramo');
+    const msg       = document.getElementById('msg');
 
-    // Crea matriz 6 franjas x 5 días
-    function emptyMatrix() {
-      const m = [];
-      FRANJAS.forEach(()=> m.push([[],[],[],[],[]]));
-      return m;
+    // ---- Auth anónima ----
+    signInAnonymously(auth).catch(console.error);
+    onAuthStateChanged(auth, (user) => {
+      state.uid = user?.uid || null;
+      render();
+    });
+
+    // ---- Carga de reservas por rango y aula ----
+    async function loadByRange(aula, d0, d1) {
+      // Queremos todas entre d0..d1 (ISO)
+      const reservasCol = collection(db, 'reservas');
+      const q = query(
+        reservasCol,
+        where('aula', '==', aula),
+        where('fecha', '>=', fmtISO(d0)),
+        where('fecha', '<=', fmtISO(d1))
+      );
+      const snap = await getDocs(q);
+      const list = [];
+      snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      return list;
     }
 
-    // Color estable por materia
-    function colorFromString(s) {
-      // hash simple
-      let h = 0; for (let i=0;i<s.length;i++) h = s.charCodeAt(i) + ((h<<5)-h);
-      const hue = Math.abs(h)%360;
-      return `hsl(${hue} 80% 88%)`;
-    }
+    // ---- Render Day / Week / Month ----
+    async function render() {
+      const aula = selAula.value;
+      let d0, d1, html="";
 
-    async function renderWeek() {
-      weekTitle.textContent = rangoSemanaTexto(currentMonday);
-      // fechas ISO para L..V
-      const fechas = [0,1,2,3,4].map(i => fmtISO(addDays(currentMonday, i)));
-
-      // Limpia
-      gridBody.innerHTML = '';
-      const matrix = emptyMatrix();
-
-      // Carga reservas (ID determinista aula_fecha_franja)
-      // Vamos a probar existencias por IDs generados; para mostrar iteramos las combinaciones
-      // Con un getDoc por cada celda (6*5=30) es suficiente y sencillo:
-      for (let r=0;r<FRANJAS.length;r++) {
-        for (let c=0;c<5;c++) {
-          const id = idReserva(document.getElementById('iAula').value, fechas[c], FRANJAS[r]); // por aula actual
-          const d = await getDoc(doc(db, 'reservas', id));
-          if (d.exists()) matrix[r][c].push(d.data());
-        }
-      }
-
-      // Construye filas
-      for (let r=0;r<FRANJAS.length;r++) {
-        const tr = document.createElement('tr');
-
-        // Columna franja
-        const tdLabel = document.createElement('td');
-        tdLabel.className = 'p-2 align-top label-muted';
-        tdLabel.innerHTML = `<div class="slot-pill">${FRANJAS[r]}</div>`;
-        tr.appendChild(tdLabel);
-
-        // 5 días
-        for (let c=0;c<5;c++) {
-          const td = document.createElement('td');
-          td.className = 'p-2 align-top';
-          const cell = document.createElement('div');
-          cell.className = 'slot-cell p-2';
-          const reservas = matrix[r][c];
-
-          if (reservas.length===0) {
-            cell.innerHTML = `<div class="text-center text-slate-400 mt-5 text-sm">— libre —</div>`;
-          } else {
-            reservas.forEach(rv => {
-              const tag = document.createElement('div');
-              tag.className = 'mb-1 px-2 py-1 rounded text-sm cursor-pointer hover:brightness-95';
-              tag.style.background = colorFromString(rv.materia||'Materia');
-              tag.textContent = `${rv.nombre||''} · ${rv.materia||''}`;
-              tag.title = `Aula: ${rv.aula} · ${rv.fecha} · ${rv.franja}\nClick para borrar si conoces el PIN`;
-              tag.onclick = ()=> intentarBorrar(rv);
-              cell.appendChild(tag);
-            });
-          }
-          td.appendChild(cell);
-          tr.appendChild(td);
-        }
-        gridBody.appendChild(tr);
-      }
-    }
-
-    async function intentarBorrar(rv) {
-      const pin = prompt('Introduce el PIN de la reserva para borrarla');
-      if (!pin) return;
-      if (pin !== (rv.pin||'')) { alert('PIN incorrecto.'); return; }
-      const id = idReserva(rv.aula, rv.fecha, rv.franja);
-      await deleteDoc(doc(db,'reservas',id));
-      renderWeek();
-    }
-
-    // ---------- Guardado ----------
-    const iNombre  = document.getElementById('iNombre');
-    const iMateria = document.getElementById('iMateria');
-    const iPin     = document.getElementById('iPin');
-    const iAula    = document.getElementById('iAula');
-    const iDesde   = document.getElementById('iDesde');
-    const iHasta   = document.getElementById('iHasta');
-    const iFranja  = document.getElementById('iFranja');
-    const msg      = document.getElementById('msg');
-    const btnGuardar = document.getElementById('btnGuardar');
-
-    // Fechas iniciales por comodidad: semana actual
-    const hoy = new Date(); iDesde.value = fmtISO(hoy); iHasta.value = fmtISO(hoy);
-
-    function idReserva(aula, fecha, franja) {
-      return `${aula}__${fecha}__${franja}`;
-    }
-
-    function diasSeleccionados() {
-      return [...document.querySelectorAll('.dayChk:checked')].map(x => +x.value);
-    }
-
-    btnGuardar.onclick = async () => {
-      msg.textContent = '';
-
-      const nombre  = iNombre.value.trim();
-      const materia = iMateria.value.trim();
-      const pin     = iPin.value.trim();
-      const aula    = iAula.value;
-      const desde   = new Date(iDesde.value);
-      const hasta   = new Date(iHasta.value);
-      const franja  = iFranja.value;
-      const diasOK  = diasSeleccionados(); // 0..6
-
-      if (!nombre || !materia || !iDesde.value || !iHasta.value) {
-        alert('Completa Nombre, Materia y fechas.');
-        return;
-      }
-      if (hasta < desde) {
-        alert('La fecha "Hasta" no puede ser anterior a "Desde".');
-        return;
-      }
-
-      // Itera días del rango y crea reservas en los días seleccionados (por día de la semana)
-      let total = 0, conflictos = 0;
-      for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate()+1)) {
-        const dow = d.getDay();
-        if (!diasOK.includes(dow)) continue;
-        const fechaISO = fmtISO(d);
-        const id = idReserva(aula, fechaISO, franja);
-        const ref = doc(db, 'reservas', id);
-        const snap = await getDoc(ref);
-        if (snap.exists()) { conflictos++; continue; }
-
-        await setDoc(ref, {
-          id, aula, fecha: fechaISO, franja,
-          nombre, materia, pin
-        });
-        total++;
-      }
-
-      if (total>0) {
-        msg.textContent = `Se guardaron ${total} reservas.${conflictos?` (${conflictos} en conflicto)`:''}`;
-      } else if (conflictos>0) {
-        alert('Ya existe una reserva en ese aula/franja para todas las fechas elegidas.');
+      // Calcula rango de fechas según la vista
+      if (state.view==='day') {
+        d0 = new Date(state.baseDate); d0.setHours(0,0,0,0);
+        d1 = new Date(d0);
+      } else if (state.view==='week') {
+        d0 = startOfWeek(state.baseDate);
+        d1 = endOfWeek(state.baseDate);
       } else {
-        msg.textContent = 'No había días marcados para repetir.';
+        d0 = startOfMonth(state.baseDate);
+        d1 = endOfMonth(state.baseDate);
       }
-      renderWeek();
-    };
 
-    // Al cambiar de aula, recargo la semana (para ver las reservas de ese espacio)
-    iAula.addEventListener('change', renderWeek);
+      // Etiqueta rango
+      if (state.view==='day') {
+        rangeLabel.textContent = fmtISO(d0);
+      } else if (state.view==='week') {
+        rangeLabel.textContent = `Semana del ${fmtISO(d0)} al ${fmtISO(d1)}`;
+      } else {
+        const m = state.baseDate.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+        rangeLabel.textContent = m.charAt(0).toUpperCase()+m.slice(1);
+      }
 
-    // Primera carga
-    renderWeek();
+      // Trae reservas del rango
+      const data = await loadByRange(aula, d0, d1);
+
+      // index: clave fecha+tramo -> reservas[]
+      const idx = new Map();
+      for (const r of data) {
+        const key = `${r.fecha}|${r.tramo}`;
+        if (!idx.has(key)) idx.set(key, []);
+        idx.get(key).push(r);
+      }
+
+      // Renders por vista
+      if (state.view==='day') {
+        html += renderHeader(['Franja', WD[(d0.getDay()+6)%7]]);
+        html += renderRowsForDays([d0], idx);
+      } else if (state.view==='week') {
+        const days = [...Array(7)].map((_,i)=> addDays(d0,i));
+        html += renderHeader(['Franja','L','M','X','J','V','S','D'].slice(0,1).concat(['L','M','X','J','V'])); // Muestra L-V
+        // Para la semana solo usamos L-V
+        const weekDays = days.slice(1,6);
+        html += renderRowsForDays(weekDays, idx);
+      } else { // month
+        html += `<div class="grid grid-cols-7 gap-2 mb-2 text-center text-sm col-head">
+          ${['L','M','X','J','V','S','D'].map(x=>`<div>${x}</div>`).join('')}
+        </div>`;
+        html += renderMonthGrid(d0, idx);
+      }
+
+      grid.innerHTML = html;
+      bindDeleteHandlers(idx); // activa los clics en chips de reservas
+    }
+
+    function renderHeader(cols) {
+      return `<div class="grid grid-cols-[120px,repeat(5,1fr)] gap-2 p-2 text-sm col-head">
+        ${cols.map(c=>`<div class="${c==='Franja'?'text-left':'text-center'}">${c}</div>`).join('')}
+      </div>`;
+    }
+
+    function renderRowsForDays(days, idx) {
+      let html = '';
+      for (let t=0; t<TRAMOS.length; t++) {
+        html += `<div class="grid grid-cols-[120px,repeat(${days.length},1fr)] gap-2 items-stretch mb-2">`;
+        html += `<div class="mono text-sm text-gray-600">${TRAMOS[t]}</div>`;
+        for (const d of days) {
+          const key = `${fmtISO(d)}|${t}`;
+          const items = idx.get(key)||[];
+          html += `<div class="slot p-2">${ items.length ? items.map(chip).join(' ') : `<span class="text-xs text-gray-400">— libre —</span>`}</div>`;
+        }
+        html += `</div>`;
+      }
+      return html;
+    }
+
+    function renderMonthGrid(firstOfMonth, idx) {
+      // Empezamos en lunes de la primera semana del mes
+      const start = startOfWeek(firstOfMonth);
+      const last  = endOfWeek(endOfMonth(firstOfMonth));
+      let d = new Date(start);
+      let html = `<div class="grid grid-cols-7 gap-2">`;
+      while (d <= last) {
+        const isOther = d.getMonth()!==firstOfMonth.getMonth();
+        // Mostramos chips de todas las franjas del día (si hay)
+        let chipsHTML = '';
+        for (let t=0; t<TRAMOS.length; t++) {
+          const items = idx.get(`${fmtISO(d)}|${t}`) || [];
+          chipsHTML += items.map(chip).join(' ');
+        }
+        html += `<div class="rounded-xl border p-2 min-h-[96px] ${isOther?'bg-gray-50':''}">
+          <div class="text-xs text-gray-500 mb-1 mono">${d.getDate().toString().padStart(2,'0')}</div>
+          <div class="space-y-1">${chipsHTML || `<div class="text-[11px] text-gray-400">— libre —</div>`}</div>
+        </div>`;
+        d = addDays(d,1);
+      }
+      html += `</div>`;
+      return html;
+    }
+
+    function aulaColor(aula) {
+      if (aula.includes('Radio')) return 'bg-purple-500';
+      if (aula.includes('Bibli')) return 'bg-sky-500';
+      return 'bg-emerald-500';
+    }
+
+    function chip(r) {
+      const initials = (r.profesor||'').split(/\s+/).filter(Boolean).map(x=>x[0]).join('').slice(0,2).toUpperCase() || 'PR';
+      return `<span class="chip text-white ${aulaColor(r.aula)} chip-btn"
+                data-id="${r.id}" data-uid="${r.uid||''}" data-haspin="${r.pin?1:0}"
+                title="${r.profesor||''} · ${r.materia||''}">
+                <b class="text-[10px] bg-black/20 rounded px-1">${initials}</b>
+                <span>${(r.materia||'').slice(0,16)}</span>
+              </span>`;
+    }
+
+    // ---- Borrado al hacer clic en la etiqueta ----
+    function bindDeleteHandlers() {
+      grid.querySelectorAll('.chip-btn').forEach(el=>{
+        el.addEventListener('click', async ()=>{
+          const id = el.dataset.id;
+          const uid = el.dataset.uid;
+          const hasPin = Number(el.dataset.haspin)===1;
+
+          // Control de permisos: si tiene PIN -> pedir PIN.
+          // Si no tiene PIN -> solo el creador (uid) puede borrar.
+          if (hasPin) {
+            const pin = prompt('PIN de esta reserva (requerido para borrar):');
+            if (!pin) return;
+            await deleteById(id, {pin});
+          } else {
+            if (!state.uid || state.uid!==uid) {
+              alert('Solo quien creó la reserva (sin PIN) puede borrarla.');
+              return;
+            }
+            const ok = confirm('¿Eliminar tu reserva?');
+            if (!ok) return;
+            await deleteById(id, {});
+          }
+          await render();
+        });
+      });
+    }
+
+    async function deleteById(id, {pin}) {
+      // Borrado vía Cloud Function sería lo ideal con reglas;
+      // para simplicidad “soft” aquí: intentamos borrar con
+      // seguridad en Reglas (revisa reglas si quieres forzarlo).
+      // Como estamos en modo demo, para borrar haremos un “marcado”
+      // pero lo haremos REAL con una Cloud Function más tarde si quieres.
+      // Para que funcione ahora mismo, cambiaremos las reglas temporalmente
+      // o hacemos una subcolección… —> Simplificamos:
+      // Vamos a traer el doc y verificar aquí.
+      const reservasCol = collection(db, 'reservas');
+      // No hay deleteDoc CDN aquí por simplicidad en demo:
+      const q = query(reservasCol, where('uid','>=',''));
+      const snap = await getDocs(q);
+      let found = null;
+      snap.forEach(d=>{ if (d.id===id) found = {ref:d.ref, ...d.data()}; });
+
+      if (!found) return alert('Reserva no encontrada');
+
+      if (found.pin) {
+        if (!pin || pin !== found.pin) {
+          alert('PIN incorrecto.');
+          return;
+        }
+      } else {
+        if (found.uid !== state.uid) {
+          alert('No puedes eliminar reservas que no has creado (sin PIN).');
+          return;
+        }
+      }
+
+      // borrado efectivo:
+      // import { deleteDoc } from firestore si quieres, aquí añadimos dinámicamente:
+      const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+      await deleteDoc(found.ref);
+    }
+
+    // ---- Guardar reservas ----
+    frm.addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      msg.classList.add('hidden');
+
+      const profesor = inpProf.value.trim();
+      const materia  = inpMate.value.trim();
+      const pin      = (inpPin.value||'').trim();
+      const aula     = selAula.value;
+      const tramo    = Number(selTramo.value);
+
+      // Rango de fechas
+      const d0 = inpDesde.value ? new Date(inpDesde.value) : new Date();
+      const d1 = inpHasta.value ? new Date(inpHasta.value) : new Date(inpDesde.value||Date.now());
+
+      // Días seleccionados
+      const daysSel = [...document.querySelectorAll('.rep:checked')].map(x=>Number(x.value));
+      // Si no hay repetición marcada: usamos el día de inicio
+      const sinReps = daysSel.length===0;
+
+      // Construir lista de fechas del rango que caen en daysSel (o solo d0)
+      const fechas = [];
+      let d = new Date(d0); d.setHours(0,0,0,0);
+      const lim = new Date(d1); lim.setHours(0,0,0,0);
+
+      while (d<=lim) {
+        const wd = d.getDay(); // 0..6
+        const iso = fmtISO(d);
+        if (sinReps) {
+          if (iso===fmtISO(d0)) fechas.push(new Date(d));
+        } else {
+          // Convertimos a 0..6 pero con L=1..V=5 (Dom=0)
+          const wdLMXJVSD = wd; // ya coincide con “0 domingo … 6 sábado”
+          if (daysSel.includes(wdLMXJVSD)) fechas.push(new Date(d));
+        }
+        d = addDays(d,1);
+      }
+
+      if (!fechas.length) {
+        alert('No hay días seleccionados dentro del rango.');
+        return;
+      }
+
+      // 1) Comprobamos choques por cada fecha
+      for (const f of fechas) {
+        const existe = await existeReserva(aula, fmtISO(f), tramo);
+        if (existe) {
+          alert(`Ya existe una reserva en ${aula}, ${fmtISO(f)} · ${TRAMOS[tramo]}`);
+          return;
+        }
+      }
+
+      // 2) Insertamos todas
+      const reservasCol = collection(db, 'reservas');
+      const batch = [];
+      for (const f of fechas) {
+        batch.push(addDoc(reservasCol, {
+          aula, fecha: fmtISO(f), tramo,
+          profesor, materia, uid: state.uid || '',
+          pin: pin || '', creado: serverTimestamp()
+        }));
+      }
+      await Promise.all(batch);
+
+      msg.classList.remove('hidden');
+      // refresco inmediato de la vista actual
+      await render();
+    });
+
+    async function existeReserva(aula, fechaISO, tramo) {
+      const reservasCol = collection(db, 'reservas');
+      const q = query(
+        reservasCol,
+        where('aula',  '==', aula),
+        where('fecha', '==', fechaISO),
+        where('tramo', '==', tramo),
+      );
+      const snap = await getDocs(q);
+      return !snap.empty;
+    }
+
+    // ---- Navegación y Tabs ----
+    function setView(v) {
+      state.view = v;
+      tabDay.classList.toggle('btn-active', v==='day');
+      tabWeek.classList.toggle('btn-active', v==='week');
+      tabMonth.classList.toggle('btn-active', v==='month');
+      render();
+    }
+
+    tabDay.addEventListener('click', ()=> setView('day'));
+    tabWeek.addEventListener('click',()=> setView('week'));
+    tabMonth.addEventListener('click',()=> setView('month'));
+
+    btnPrev.addEventListener('click', ()=>{
+      if (state.view==='day')   state.baseDate = addDays(state.baseDate,-1);
+      if (state.view==='week')  state.baseDate = addDays(state.baseDate,-7);
+      if (state.view==='month') state.baseDate = new Date(state.baseDate.getFullYear(), state.baseDate.getMonth()-1, 1);
+      render();
+    });
+
+    btnNext.addEventListener('click', ()=>{
+      if (state.view==='day')   state.baseDate = addDays(state.baseDate, 1);
+      if (state.view==='week')  state.baseDate = addDays(state.baseDate, 7);
+      if (state.view==='month') state.baseDate = new Date(state.baseDate.getFullYear(), state.baseDate.getMonth()+1, 1);
+      render();
+    });
+
+    btnToday.addEventListener('click', ()=>{
+      state.baseDate = new Date(); render();
+    });
+
+    // Cambio de aula refresca
+    selAula.addEventListener('change', render);
+
+    // Inicializamos fechas del formulario
+    const hoyISO = fmtISO(new Date());
+    inpDesde.value = hoyISO;
+    inpHasta.value = hoyISO;
+
+    // Primer render
+    render();
   </script>
 </body>
 </html>
+
