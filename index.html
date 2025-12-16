@@ -2,41 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
+  <title>IES La Fresneda · Reservas de aulas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>IES La Fresneda · Reservas de aulas</title>
-
   <!-- FAVICON -->
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <!-- TAILWIND -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
     .mono{font-variant-numeric:tabular-nums}
     .slot{min-height:56px;background:#fff;border:1px dashed #e5e7eb;border-radius:14px}
-    .btn{border-radius:14px;padding:.5rem .75rem;border:1px solid #e5e7eb;background:#fff}
+    .btn{border-radius:14px;padding:.45rem .75rem;border:1px solid #e5e7eb;background:#fff}
     .btn[aria-current="true"]{background:#059669;color:#fff;border-color:#059669}
     .btn:hover{background:#f8fafc}
     .chip{
-      display:inline-flex;align-items:center;gap:.4rem;
-      padding:.2rem .55rem;border-radius:999px;
+      display:inline-flex;align-items:center;gap:.35rem;
+      padding:.25rem .55rem;border-radius:999px;
       font-size:.75rem;line-height:1rem;
       border:1px solid rgba(0,0,0,.08);
-      box-shadow:0 1px 0 rgba(0,0,0,.03);
+      box-shadow:0 1px 0 rgba(0,0,0,.04);
       cursor:pointer;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
     }
-    .badge{
-      font-size:.65rem;
-      padding:.05rem .4rem;
-      border-radius:999px;
-      background:rgba(255,255,255,.6);
-      border:1px solid rgba(0,0,0,.1);
-    }
+    .badge{font-size:.65rem;padding:.05rem .35rem;border-radius:999px;border:1px solid rgba(0,0,0,.15)}
+    .gridHead{font-weight:600;color:#475569;font-size:.85rem}
   </style>
 </head>
 
@@ -44,9 +35,10 @@
 
 <div class="max-w-7xl mx-auto px-4 py-6">
 
-<header class="flex items-center justify-between gap-4 flex-wrap">
+<header class="flex flex-wrap items-center justify-between gap-3">
   <div class="flex items-center gap-3">
-    <img src="IES.png" alt="IES La Fresneda" class="h-12 w-auto rounded-md shadow-sm">
+    <img src="IES.png" alt="IES La Fresneda" class="h-10 rounded-md shadow-sm"
+         onerror="this.style.display='none'">
     <div>
       <h1 class="text-xl sm:text-2xl font-semibold text-slate-800">
         IES La Fresneda · Reservas de aulas
@@ -55,68 +47,70 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-2 flex-wrap">
-    <button id="btnPrev" class="btn">←</button>
-    <button id="btnToday" class="btn">Hoy</button>
-    <button id="btnNext" class="btn">→</button>
+  <div class="flex flex-wrap items-center gap-2">
+    <button id="prev" class="btn">←</button>
+    <button id="today" class="btn">Hoy</button>
+    <button id="next" class="btn">→</button>
 
-    <button id="btnDay" class="btn">Día</button>
-    <button id="btnWeek" class="btn" aria-current="true">Semana</button>
-    <button id="btnMonth" class="btn">Mes</button>
+    <button id="day" class="btn">Día</button>
+    <button id="week" class="btn" aria-current="true">Semana</button>
+    <button id="month" class="btn">Mes</button>
 
-    <span id="rangeLabel" class="text-sm text-slate-600 ml-2"></span>
+    <span id="label" class="text-sm text-slate-600 ml-2"></span>
   </div>
 </header>
 
 <div class="mt-6 grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-6">
 
 <!-- FORMULARIO -->
-<aside class="bg-white rounded-2xl p-4 shadow border">
+<aside class="bg-white p-4 rounded-2xl shadow border">
 <h2 class="text-lg font-medium mb-3">Crear reserva</h2>
 
-<input id="inpProf" placeholder="Profesor/a" class="w-full mb-2 p-2 border rounded-xl">
-<input id="inpMat" placeholder="Materia" class="w-full mb-2 p-2 border rounded-xl">
+<input id="prof" placeholder="Profesor/a"
+ class="w-full mb-2 p-2 rounded-xl border">
 
-<select id="selActividad" class="w-full mb-2 p-2 border rounded-xl">
+<input id="mat" placeholder="Materia"
+ class="w-full mb-2 p-2 rounded-xl border">
+
+<select id="act" class="w-full mb-2 p-2 rounded-xl border">
   <option value="centro">Actividad del centro</option>
   <option value="fuera">Actividad externa</option>
 </select>
 
-<input id="inpPIN" placeholder="PIN (opcional)" class="w-full mb-2 p-2 border rounded-xl">
+<input id="pin" placeholder="PIN (opcional)"
+ class="w-full mb-2 p-2 rounded-xl border">
 
-<select id="selAula" class="w-full mb-2 p-2 border rounded-xl">
+<select id="aula" class="w-full mb-2 p-2 rounded-xl border">
   <option>Aula del Futuro</option>
   <option>Radio</option>
   <option>Biblioteca</option>
 </select>
 
-<div class="grid grid-cols-2 gap-2">
-  <input id="dateDesde" type="date" class="p-2 border rounded-xl">
-  <input id="dateHasta" type="date" class="p-2 border rounded-xl">
-</div>
+<label class="text-sm">Desde</label>
+<input type="date" id="from" class="w-full mb-2 p-2 rounded-xl border">
 
-<h3 class="mt-3 text-sm font-medium">Días</h3>
-<div id="daysBox" class="max-h-32 overflow-auto border rounded-xl p-2 bg-slate-50"></div>
+<label class="text-sm">Hasta</label>
+<input type="date" id="to" class="w-full mb-2 p-2 rounded-xl border">
 
-<h3 class="mt-3 text-sm font-medium">Franjas horarias</h3>
-<div id="slotsBox" class="border rounded-xl p-2 bg-slate-50"></div>
+<div class="text-sm font-medium mt-2">Franjas horarias</div>
+<div id="slots" class="mb-3"></div>
 
-<button id="btnSave" class="mt-4 w-full bg-emerald-600 text-white py-2 rounded-xl">
+<button id="save"
+ class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl">
 Guardar reservas
 </button>
 
-<div id="msg" class="text-sm mt-2"></div>
+<p id="msg" class="text-sm mt-2"></p>
 </aside>
 
 <!-- CALENDARIO -->
-<main class="bg-white rounded-2xl p-4 shadow border">
-  <div id="grid"></div>
+<main class="bg-white p-4 rounded-2xl shadow border">
+<div id="grid"></div>
 </main>
 
 </div>
 </div>
 
-<!-- FIREBASE Y LÓGICA -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
@@ -125,15 +119,63 @@ import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https
 const firebaseConfig = {
   apiKey: "AIzaSyCzoZJD3TZyK9eWGtLKKZsxdqtOwV51tY0",
   authDomain: "reservas-ies-fresneda.firebaseapp.com",
-  projectId: "reservas-ies-fresneda"
+  projectId: "reservas-ies-fresneda",
+  storageBucket: "reservas-ies-fresneda.firebasestorage.app",
+  messagingSenderId: "536472576233",
+  appId: "1:536472576233:web:4571c2f9de71c9ad0a1078"
 };
 
 const app = initializeApp(firebaseConfig);
-await signInAnonymously(getAuth(app));
 const db = getFirestore(app);
+await signInAnonymously(getAuth(app));
 
-document.getElementById("grid").innerHTML =
-  "<p class='text-slate-600'>La app se ha cargado correctamente. Firebase activo.</p>";
+const FRANJAS = [
+ "08:15–09:10","09:10–10:05","10:25–11:20",
+ "11:20–12:15","12:35–13:30","13:30–14:25"
+];
+
+const slotsBox = document.getElementById("slots");
+FRANJAS.forEach((f,i)=>{
+ slotsBox.innerHTML+=`
+ <label class="flex gap-2 text-sm">
+ <input type="checkbox" value="${i}"> ${f}
+ </label>`;
+});
+
+const grid=document.getElementById("grid");
+
+async function render(){
+ const snap=await getDocs(collection(db,"reservas"));
+ let html="<p class='text-slate-600'>Reservas activas:</p>";
+ snap.forEach(d=>{
+  const r=d.data();
+  html+=`
+  <div class="chip mt-1"
+   style="background:hsl(${(r.materia||'').length*40%360} 80% 85%)">
+   ${r.profesor} · ${r.materia}
+   <span class="badge">${r.actividad}</span>
+  </div>`;
+ });
+ grid.innerHTML=html;
+}
+render();
+
+document.getElementById("save").onclick=async()=>{
+ const prof=prof.value.trim();
+ const mat=mat.value.trim();
+ if(!prof||!mat)return;
+ const slots=[...document.querySelectorAll("#slots input:checked")].map(i=>i.value);
+ for(const s of slots){
+  await addDoc(collection(db,"reservas"),{
+   profesor:prof,
+   materia:mat,
+   actividad:act.value,
+   aula:aula.value,
+   tramo:s
+  });
+ }
+ render();
+};
 </script>
 
 </body>
