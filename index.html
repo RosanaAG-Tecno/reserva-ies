@@ -2,181 +2,653 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>IES La Fresneda · Reservas de aulas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IES La Fresneda · Reservas de aulas</title>
 
-  <!-- FAVICON -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Favicon (sube favicon.ico a la raíz del repo) -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
     .mono{font-variant-numeric:tabular-nums}
     .slot{min-height:56px;background:#fff;border:1px dashed #e5e7eb;border-radius:14px}
-    .btn{border-radius:14px;padding:.45rem .75rem;border:1px solid #e5e7eb;background:#fff}
+    .btn{border-radius:14px;padding:.5rem .75rem;border:1px solid #e5e7eb;background:#fff}
     .btn[aria-current="true"]{background:#059669;color:#fff;border-color:#059669}
     .btn:hover{background:#f8fafc}
     .chip{
-      display:inline-flex;align-items:center;gap:.35rem;
-      padding:.25rem .55rem;border-radius:999px;
+      display:inline-flex;align-items:center;gap:.4rem;
+      padding:.2rem .55rem;border-radius:999px;
       font-size:.75rem;line-height:1rem;
       border:1px solid rgba(0,0,0,.08);
-      box-shadow:0 1px 0 rgba(0,0,0,.04);
-      cursor:pointer;
-      max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+      box-shadow:0 1px 0 rgba(0,0,0,.03);
+      cursor:pointer; user-select:none;
+      max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-    .badge{font-size:.65rem;padding:.05rem .35rem;border-radius:999px;border:1px solid rgba(0,0,0,.15)}
-    .gridHead{font-weight:600;color:#475569;font-size:.85rem}
+    .chip small{opacity:.85}
+    .badge{
+      display:inline-flex;align-items:center;
+      padding:.05rem .4rem;border-radius:999px;
+      font-size:.7rem;line-height:1rem;
+      border:1px solid rgba(0,0,0,.1);
+      background:rgba(255,255,255,.55);
+      margin-left:.25rem;
+    }
+    .gridHead{font-weight:600;color:#475569;font-size:.875rem;}
   </style>
 </head>
 
 <body class="bg-gradient-to-b from-emerald-50 to-cyan-50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <header class="flex items-center justify-between gap-3 flex-wrap">
+      <div class="flex items-center gap-3">
+        <!-- Logo (sube IES.png a la raíz del repo) -->
+        <img src="IES.png" onerror="this.style.display='none'"
+             alt="Logo IES La Fresneda"
+             class="h-10 w-auto rounded-md shadow-sm">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-semibold text-slate-800">IES La Fresneda · Reservas</h1>
+          <p class="text-sm text-slate-600">Aula del Futuro · Radio · Biblioteca</p>
+        </div>
+      </div>
 
-<div class="max-w-7xl mx-auto px-4 py-6">
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="btnPrev" class="btn" title="Anterior">←</button>
+        <button id="btnToday" class="btn" title="Hoy">Hoy</button>
+        <button id="btnNext" class="btn" title="Siguiente">→</button>
 
-<header class="flex flex-wrap items-center justify-between gap-3">
-  <div class="flex items-center gap-3">
-    <img src="IES.png" alt="IES La Fresneda" class="h-10 rounded-md shadow-sm"
-         onerror="this.style.display='none'">
-    <div>
-      <h1 class="text-xl sm:text-2xl font-semibold text-slate-800">
-        IES La Fresneda · Reservas de aulas
-      </h1>
-      <p class="text-sm text-slate-600">Aula del Futuro · Radio · Biblioteca</p>
+        <div class="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+        <button id="btnDay" class="btn" aria-current="false">Día</button>
+        <button id="btnWeek" class="btn" aria-current="true">Semana</button>
+        <button id="btnMonth" class="btn" aria-current="false">Mes</button>
+
+        <div class="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+        <div id="rangeLabel" class="text-slate-600 text-sm"></div>
+      </div>
+    </header>
+
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-6">
+      <!-- Form -->
+      <aside class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <h2 class="text-lg font-medium mb-3">Crear reserva</h2>
+
+        <div class="space-y-3">
+          <label class="block">
+            <span class="text-sm text-slate-600">Profesor/a</span>
+            <input id="inpProf" class="w-full mt-1 rounded-xl border border-slate-200 p-2" placeholder="Nombre y apellidos">
+          </label>
+
+          <label class="block">
+            <span class="text-sm text-slate-600">Materia</span>
+            <input id="inpMat" class="w-full mt-1 rounded-xl border border-slate-200 p-2" placeholder="Ej.: Tecnología">
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block">
+              <span class="text-sm text-slate-600">Actividad</span>
+              <select id="selActividad" class="w-full mt-1 rounded-xl border border-slate-200 p-2">
+                <option value="centro">Del centro</option>
+                <option value="fuera">Fuera del centro</option>
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="text-sm text-slate-600">PIN (opcional)</span>
+              <input id="inpPIN" class="w-full mt-1 rounded-xl border border-slate-200 p-2" placeholder="Ej.: 1234">
+            </label>
+          </div>
+
+          <label class="block">
+            <span class="text-sm text-slate-600">Aula</span>
+            <select id="selAula" class="w-full mt-1 rounded-xl border border-slate-200 p-2">
+              <option value="Aula del Futuro">Aula del Futuro</option>
+              <option value="Radio">Radio</option>
+              <option value="Biblioteca">Biblioteca</option>
+            </select>
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block">
+              <span class="text-sm text-slate-600">Desde</span>
+              <input id="dateDesde" type="date" class="w-full mt-1 rounded-xl border border-slate-200 p-2">
+            </label>
+            <label class="block">
+              <span class="text-sm text-slate-600">Hasta</span>
+              <input id="dateHasta" type="date" class="w-full mt-1 rounded-xl border border-slate-200 p-2">
+            </label>
+          </div>
+
+          <!-- Selección múltiple de DÍAS concretos -->
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-600">Seleccionar días (del rango)</span>
+              <div class="flex gap-2 text-xs">
+                <button id="btnDaysAll" class="btn py-1 px-2">Todos</button>
+                <button id="btnDaysNone" class="btn py-1 px-2">Ninguno</button>
+              </div>
+            </div>
+            <div id="daysBox" class="mt-2 max-h-36 overflow-auto border border-slate-200 rounded-xl p-2 bg-slate-50"></div>
+            <div class="text-xs text-slate-500 mt-1">Marca días concretos; no depende de L/M/X…</div>
+          </div>
+
+          <!-- Selección múltiple de FRANJAS -->
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-600">Seleccionar franjas</span>
+              <div class="flex gap-2 text-xs">
+                <button id="btnSlotsAll" class="btn py-1 px-2">Todas</button>
+                <button id="btnSlotsNone" class="btn py-1 px-2">Ninguna</button>
+              </div>
+            </div>
+            <div id="slotsBox" class="mt-2 border border-slate-200 rounded-xl p-2 bg-slate-50"></div>
+            <div class="text-xs text-slate-500 mt-1">Puedes marcar 2–3 horas seguidas.</div>
+          </div>
+
+          <button id="btnSave" class="w-full rounded-xl bg-emerald-600 text-white py-2 hover:bg-emerald-700">
+            Guardar reservas seleccionadas
+          </button>
+
+          <div id="msg" class="text-sm mt-1"></div>
+
+          <div class="pt-2">
+            <div class="text-sm text-slate-600 mb-1">Semana lectiva</div>
+            <div class="text-xs text-slate-500">Vista semanal: lunes a viernes. Sábado y domingo no se muestran.</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Calendar -->
+      <main class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div id="grid"></div>
+      </main>
     </div>
   </div>
 
-  <div class="flex flex-wrap items-center gap-2">
-    <button id="prev" class="btn">←</button>
-    <button id="today" class="btn">Hoy</button>
-    <button id="next" class="btn">→</button>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      deleteDoc,
+      doc,
+      query,
+      where,
+      serverTimestamp,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
-    <button id="day" class="btn">Día</button>
-    <button id="week" class="btn" aria-current="true">Semana</button>
-    <button id="month" class="btn">Mes</button>
+    // ======== Firebase Config (tu proyecto) ========
+    const firebaseConfig = {
+      apiKey: "AIzaSyCzoZJD3TZyK9eWGtLKKZsxdqtOwV51tY0",
+      authDomain: "reservas-ies-fresneda.firebaseapp.com",
+      projectId: "reservas-ies-fresneda",
+      storageBucket: "reservas-ies-fresneda.firebasestorage.app",
+      messagingSenderId: "536472576233",
+      appId: "1:536472576233:web:4571c2f9de71c9ad0a1078"
+    };
 
-    <span id="label" class="text-sm text-slate-600 ml-2"></span>
-  </div>
-</header>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    await signInAnonymously(auth);
 
-<div class="mt-6 grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-6">
+    // ======== Horarios ========
+    const TRAMOS = [
+      "08:15–09:10",
+      "09:10–10:05",
+      "10:25–11:20",
+      "11:20–12:15",
+      "12:35–13:30",
+      "13:30–14:25"
+    ];
 
-<!-- FORMULARIO -->
-<aside class="bg-white p-4 rounded-2xl shadow border">
-<h2 class="text-lg font-medium mb-3">Crear reserva</h2>
+    // ======== Estado ========
+    const state = { view:"week", baseDate: todayLocal() };
 
-<input id="prof" placeholder="Profesor/a"
- class="w-full mb-2 p-2 rounded-xl border">
+    // Cache de reservas del aula seleccionada (para refresco instantáneo)
+    let aulaUnsub = null;
+    let aulaCache = []; // docs del aula
+    let aulaCacheReady = false;
 
-<input id="mat" placeholder="Materia"
- class="w-full mb-2 p-2 rounded-xl border">
+    // ======== DOM ========
+    const grid = document.getElementById("grid");
+    const rangeLabel = document.getElementById("rangeLabel");
 
-<select id="act" class="w-full mb-2 p-2 rounded-xl border">
-  <option value="centro">Actividad del centro</option>
-  <option value="fuera">Actividad externa</option>
-</select>
+    const btnPrev = document.getElementById("btnPrev");
+    const btnNext = document.getElementById("btnNext");
+    const btnToday= document.getElementById("btnToday");
 
-<input id="pin" placeholder="PIN (opcional)"
- class="w-full mb-2 p-2 rounded-xl border">
+    const btnDay  = document.getElementById("btnDay");
+    const btnWeek = document.getElementById("btnWeek");
+    const btnMonth= document.getElementById("btnMonth");
 
-<select id="aula" class="w-full mb-2 p-2 rounded-xl border">
-  <option>Aula del Futuro</option>
-  <option>Radio</option>
-  <option>Biblioteca</option>
-</select>
+    const inpProf = document.getElementById("inpProf");
+    const inpMat  = document.getElementById("inpMat");
+    const inpPIN  = document.getElementById("inpPIN");
+    const selAula = document.getElementById("selAula");
+    const selActividad = document.getElementById("selActividad");
+    const dateDesde = document.getElementById("dateDesde");
+    const dateHasta = document.getElementById("dateHasta");
 
-<label class="text-sm">Desde</label>
-<input type="date" id="from" class="w-full mb-2 p-2 rounded-xl border">
+    const daysBox = document.getElementById("daysBox");
+    const slotsBox= document.getElementById("slotsBox");
+    const btnDaysAll  = document.getElementById("btnDaysAll");
+    const btnDaysNone = document.getElementById("btnDaysNone");
+    const btnSlotsAll = document.getElementById("btnSlotsAll");
+    const btnSlotsNone= document.getElementById("btnSlotsNone");
 
-<label class="text-sm">Hasta</label>
-<input type="date" id="to" class="w-full mb-2 p-2 rounded-xl border">
+    const btnSave = document.getElementById("btnSave");
+    const msg = document.getElementById("msg");
 
-<div class="text-sm font-medium mt-2">Franjas horarias</div>
-<div id="slots" class="mb-3"></div>
+    // ======== Fechas: evitar UTC (NO usar toISOString para el día) ========
+    function pad2(n){ return String(n).padStart(2,"0"); }
+    function fmtISOlocal(d){
+      return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    }
+    function parseISOlocal(s){
+      const [Y,M,D]=s.split("-").map(Number);
+      const d=new Date(Y, M-1, D);
+      d.setHours(0,0,0,0);
+      return d;
+    }
+    function todayLocal(){
+      const d=new Date();
+      d.setHours(0,0,0,0);
+      return d;
+    }
+    function addDays(d,n){
+      const x=new Date(d);
+      x.setDate(x.getDate()+n);
+      x.setHours(0,0,0,0);
+      return x;
+    }
 
-<button id="save"
- class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl">
-Guardar reservas
-</button>
+    // Semana España: lunes inicio. Mostramos L-V.
+    function startOfWeekMonday(d){
+      const x=new Date(d); x.setHours(0,0,0,0);
+      const day = (x.getDay()+6)%7; // L=0..D=6
+      x.setDate(x.getDate()-day);
+      return x; // lunes
+    }
+    function endOfWeekFriday(d){
+      const mon = startOfWeekMonday(d);
+      return addDays(mon, 4); // viernes
+    }
 
-<p id="msg" class="text-sm mt-2"></p>
-</aside>
+    function startOfMonth(d){
+      const x=new Date(d.getFullYear(), d.getMonth(), 1);
+      x.setHours(0,0,0,0);
+      return x;
+    }
+    function endOfMonth(d){
+      const x=new Date(d.getFullYear(), d.getMonth()+1, 0);
+      x.setHours(0,0,0,0);
+      return x;
+    }
 
-<!-- CALENDARIO -->
-<main class="bg-white p-4 rounded-2xl shadow border">
-<div id="grid"></div>
-</main>
+    // ======== Colores por materia (determinístico) ========
+    function hashStr(s){
+      let h=2166136261;
+      for (let i=0;i<s.length;i++){
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h>>>0;
+    }
+    function colorForMateria(materia){
+      const m = (materia||"").trim().toLowerCase();
+      const h = hashStr(m || "sin-materia") % 360;
+      const bg = `hsl(${h} 85% 88%)`;
+      const fg = `hsl(${h} 45% 22%)`;
+      const br = `hsl(${h} 60% 75%)`;
+      return { bg, fg, br };
+    }
 
-</div>
-</div>
+    // ======== UI: construir lista de días y franjas ========
+    function buildDaysList(){
+      const d0 = dateDesde.value ? parseISOlocal(dateDesde.value) : todayLocal();
+      const d1 = dateHasta.value ? parseISOlocal(dateHasta.value) : d0;
+      const a = d1 < d0 ? d1 : d0;
+      const b = d1 < d0 ? d0 : d1;
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+      const parts = [];
+      for (let d=new Date(a); d<=b; d=addDays(d,1)){
+        const iso = fmtISOlocal(d);
+        const label = d.toLocaleDateString("es-ES",{weekday:"short", day:"2-digit", month:"2-digit"});
+        parts.push(`
+          <label class="flex items-center gap-2 text-sm px-2 py-1 rounded-lg hover:bg-white">
+            <input type="checkbox" class="dayChk" value="${iso}">
+            <span class="mono">${iso}</span>
+            <span class="text-slate-600">(${label})</span>
+          </label>
+        `);
+      }
+      daysBox.innerHTML = parts.join("") || `<div class="text-sm text-slate-500">Selecciona un rango válido.</div>`;
+    }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCzoZJD3TZyK9eWGtLKKZsxdqtOwV51tY0",
-  authDomain: "reservas-ies-fresneda.firebaseapp.com",
-  projectId: "reservas-ies-fresneda",
-  storageBucket: "reservas-ies-fresneda.firebasestorage.app",
-  messagingSenderId: "536472576233",
-  appId: "1:536472576233:web:4571c2f9de71c9ad0a1078"
-};
+    function buildSlotsList(){
+      slotsBox.innerHTML = TRAMOS.map((t,i)=>`
+        <label class="flex items-center gap-2 text-sm px-2 py-1 rounded-lg hover:bg-white">
+          <input type="checkbox" class="slotChk" value="${i}">
+          <span class="mono">${t}</span>
+        </label>
+      `).join("");
+    }
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-await signInAnonymously(getAuth(app));
+    function setAll(selector, checked){
+      document.querySelectorAll(selector).forEach(el=> el.checked = checked);
+    }
 
-const FRANJAS = [
- "08:15–09:10","09:10–10:05","10:25–11:20",
- "11:20–12:15","12:35–13:30","13:30–14:25"
-];
+    // ======== Firestore: suscripción por aula (sin índices compuestos) ========
+    function subscribeAula(aula){
+      if (aulaUnsub) aulaUnsub();
+      aulaCacheReady = false;
+      aulaCache = [];
 
-const slotsBox = document.getElementById("slots");
-FRANJAS.forEach((f,i)=>{
- slotsBox.innerHTML+=`
- <label class="flex gap-2 text-sm">
- <input type="checkbox" value="${i}"> ${f}
- </label>`;
-});
+      const qA = query(collection(db,"reservas"), where("aula","==",aula));
+      aulaUnsub = onSnapshot(qA, (snap)=>{
+        aulaCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+        aulaCacheReady = true;
+        render(); // refresco inmediato
+      }, (err)=>{
+        console.error(err);
+        aulaCacheReady = true;
+        renderError(err);
+      });
+    }
 
-const grid=document.getElementById("grid");
+    function loadByRangeFromCache(d0, d1){
+      const min = fmtISOlocal(d0), max = fmtISOlocal(d1);
+      return aulaCache.filter(r => r.fecha >= min && r.fecha <= max);
+    }
 
-async function render(){
- const snap=await getDocs(collection(db,"reservas"));
- let html="<p class='text-slate-600'>Reservas activas:</p>";
- snap.forEach(d=>{
-  const r=d.data();
-  html+=`
-  <div class="chip mt-1"
-   style="background:hsl(${(r.materia||'').length*40%360} 80% 85%)">
-   ${r.profesor} · ${r.materia}
-   <span class="badge">${r.actividad}</span>
-  </div>`;
- });
- grid.innerHTML=html;
-}
-render();
+    // ======== Render ========
+    function headerInline(cols){
+      const n = cols.length - 1;
+      return `
+        <div style="display:grid;grid-template-columns:120px repeat(${n},1fr);gap:.5rem;margin-bottom:.35rem" class="gridHead">
+          ${cols.map((c,i)=>`<div style="text-align:${i? "center":"left"}">${c}</div>`).join("")}
+        </div>
+      `;
+    }
 
-document.getElementById("save").onclick=async()=>{
- const prof=prof.value.trim();
- const mat=mat.value.trim();
- if(!prof||!mat)return;
- const slots=[...document.querySelectorAll("#slots input:checked")].map(i=>i.value);
- for(const s of slots){
-  await addDoc(collection(db,"reservas"),{
-   profesor:prof,
-   materia:mat,
-   actividad:act.value,
-   aula:aula.value,
-   tramo:s
-  });
- }
- render();
-};
-</script>
+    function chip(r){
+      const { bg, fg, br } = colorForMateria(r.materia);
+      const activity = r.actividad === "fuera" ? "Fuera" : "Centro";
+      const activityClass = r.actividad === "fuera" ? "bg-white/60" : "bg-white/40";
 
+      return `
+        <span class="chip"
+          style="background:${bg};color:${fg};border-color:${br}"
+          data-id="${r.id}" data-pin="${r.pin||""}"
+          title="${r.profesor||""} · ${r.materia||""} · ${activity}">
+          <span>${r.profesor||"—"}</span>
+          <small>· ${r.materia||"—"}</small>
+          <span class="badge ${activityClass}">${activity}</span>
+        </span>
+      `;
+    }
+
+    function rowsForDays(days, idx){
+      let html="";
+      for (let t=0;t<TRAMOS.length;t++){
+        html += `<div style="display:grid;grid-template-columns:120px repeat(${days.length},1fr);gap:.5rem;align-items:stretch;margin-bottom:.5rem">`;
+        html += `<div class="mono text-sm text-slate-600">${TRAMOS[t]}</div>`;
+        for (const d of days){
+          const key = `${fmtISOlocal(d)}|${t}`;
+          const items = idx.get(key) || [];
+          html += `<div class="slot p-2">${items.length ? items.map(chip).join(" ") : `<span class="text-xs text-slate-400">— libre —</span>`}</div>`;
+        }
+        html += `</div>`;
+      }
+      return html;
+    }
+
+    function monthGrid(firstOfMonth, idx){
+      const start = startOfWeekMonday(firstOfMonth);
+      const lastDay = endOfMonth(firstOfMonth);
+
+      let end = new Date(lastDay);
+      const dayLM = (end.getDay()+6)%7; // L=0..D=6
+      end = addDays(end, 6 - dayLM); // hasta domingo
+
+      let html = `
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-bottom:.35rem" class="gridHead text-center">
+          ${["L","M","X","J","V","S","D"].map(x=>`<div>${x}</div>`).join("")}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem">
+      `;
+
+      for (let d=new Date(start); d<=end; d=addDays(d,1)){
+        const other = d.getMonth() !== firstOfMonth.getMonth();
+        const iso = fmtISOlocal(d);
+        const dayLM = (d.getDay()+6)%7; // L=0..D=6
+        const weekend = dayLM >= 5;
+
+        let chipsHTML = "";
+        for (let t=0;t<TRAMOS.length;t++){
+          const items = idx.get(`${iso}|${t}`) || [];
+          chipsHTML += items.map(chip).join(" ");
+        }
+
+        html += `
+          <div class="rounded-2xl border p-2 min-h-[108px]
+              ${other ? "bg-slate-50" : "bg-white"}
+              ${weekend ? "opacity-70" : ""}">
+            <div class="flex items-center justify-between mb-1">
+              <div class="mono text-xs text-slate-500">${String(d.getDate()).padStart(2,"0")}</div>
+              ${weekend ? `<span class="text-[10px] text-slate-400">sin clase</span>` : ``}
+            </div>
+            <div class="space-y-1">${chipsHTML || `<div class="text-[11px] text-slate-400">— libre —</div>`}</div>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
+    function bindDeletes(){
+      grid.querySelectorAll("[data-id]").forEach(el=>{
+        el.addEventListener("click", async ()=>{
+          const id = el.getAttribute("data-id");
+          const pin = el.getAttribute("data-pin") || "";
+          if (pin){
+            const p = prompt("Introduce el PIN para borrar esta reserva:");
+            if (p === null) return;
+            if (p !== pin){ alert("PIN incorrecto."); return; }
+          } else {
+            const ok = confirm("¿Eliminar esta reserva?");
+            if (!ok) return;
+          }
+          await deleteDoc(doc(db,"reservas", id));
+          // onSnapshot refresca solo
+        });
+      });
+    }
+
+    function renderError(e){
+      grid.innerHTML = `<div class="text-rose-700">Error de carga: ${e?.message || e}</div>`;
+    }
+
+    async function render(){
+      if (!aulaCacheReady){
+        grid.innerHTML = `<div class="text-slate-600">Cargando reservas…</div>`;
+        return;
+      }
+
+      try{
+        let d0, d1, html="";
+        if (state.view==="day"){
+          d0 = new Date(state.baseDate); d0.setHours(0,0,0,0);
+          d1 = new Date(d0);
+          rangeLabel.textContent = d0.toLocaleDateString("es-ES", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+        } else if (state.view==="week"){
+          d0 = startOfWeekMonday(state.baseDate);
+          d1 = endOfWeekFriday(state.baseDate);
+          rangeLabel.textContent = `Semana (L–V) del ${fmtISOlocal(d0)} al ${fmtISOlocal(d1)}`;
+        } else {
+          d0 = startOfMonth(state.baseDate);
+          d1 = endOfMonth(state.baseDate);
+          const m = state.baseDate.toLocaleDateString("es-ES",{month:"long", year:"numeric"});
+          rangeLabel.textContent = m.charAt(0).toUpperCase()+m.slice(1);
+        }
+
+        const data = loadByRangeFromCache(d0, d1);
+
+        const idx = new Map();
+        for (const r of data){
+          const key = `${r.fecha}|${Number(r.tramo)}`;
+          if (!idx.has(key)) idx.set(key, []);
+          idx.get(key).push(r);
+        }
+
+        if (state.view==="day"){
+          html += headerInline(["Franja","Día"]);
+          html += rowsForDays([d0], idx);
+        } else if (state.view==="week"){
+          const mon = startOfWeekMonday(state.baseDate);
+          const days = [0,1,2,3,4].map(i=>addDays(mon,i)); // L-V
+          html += headerInline(["Franja","L","M","X","J","V"]);
+          html += rowsForDays(days, idx);
+        } else {
+          html += monthGrid(d0, idx);
+        }
+
+        grid.innerHTML = html;
+        bindDeletes();
+      } catch(e){
+        console.error(e);
+        renderError(e);
+      }
+    }
+
+    // ======== Guardado: múltiples días × múltiples franjas ========
+    async function save(){
+      msg.textContent = "";
+      msg.className = "text-sm mt-1";
+
+      const profesor = inpProf.value.trim();
+      const materia  = inpMat.value.trim();
+      const pin      = (inpPIN.value||"").trim();
+      const aula     = selAula.value;
+      const actividad= selActividad.value;
+
+      if (!profesor || !materia){
+        msg.textContent = "Completa profesor/a y materia.";
+        msg.classList.add("text-rose-700");
+        return;
+      }
+
+      const selectedDays = [...document.querySelectorAll(".dayChk:checked")].map(x=>x.value);
+      const selectedSlots= [...document.querySelectorAll(".slotChk:checked")].map(x=>Number(x.value));
+
+      if (!selectedDays.length){
+        msg.textContent = "Selecciona al menos un día.";
+        msg.classList.add("text-rose-700");
+        return;
+      }
+      if (!selectedSlots.length){
+        msg.textContent = "Selecciona al menos una franja horaria.";
+        msg.classList.add("text-rose-700");
+        return;
+      }
+
+      // conflictos contra cache actual del aula
+      const actuales = [...aulaCache];
+
+      let created = 0;
+      let skipped = 0;
+
+      for (const fecha of selectedDays){
+        for (const tramo of selectedSlots){
+          const existe = actuales.some(r => r.aula===aula && r.fecha===fecha && Number(r.tramo)===tramo);
+          if (existe){ skipped++; continue; }
+
+          await addDoc(collection(db,"reservas"),{
+            aula, fecha, tramo,
+            profesor, materia,
+            actividad,
+            pin: pin || "",
+            uid: auth.currentUser?.uid || "",
+            created: serverTimestamp()
+          });
+          created++;
+          actuales.push({aula, fecha, tramo});
+        }
+      }
+
+      if (created){
+        msg.textContent = `Guardadas ${created} reserva(s). ${skipped ? `Omitidas ${skipped} por estar ocupadas.` : ""}`;
+        msg.classList.add("text-emerald-700");
+      } else {
+        msg.textContent = `No se guardó ninguna: todas estaban ocupadas.`;
+        msg.classList.add("text-amber-700");
+      }
+      // onSnapshot refresca solo
+    }
+
+    // ======== Eventos UI ========
+    function setView(v){
+      state.view=v;
+      [btnDay,btnWeek,btnMonth].forEach(b=>b.setAttribute("aria-current","false"));
+      (v==="day"?btnDay:v==="week"?btnWeek:btnMonth).setAttribute("aria-current","true");
+      render();
+    }
+    function shift(n){
+      const d=new Date(state.baseDate);
+      if (state.view==="day") d.setDate(d.getDate()+n);
+      if (state.view==="week") d.setDate(d.getDate()+7*n);
+      if (state.view==="month") d.setMonth(d.getMonth()+n);
+      d.setHours(0,0,0,0);
+      state.baseDate=d;
+      render();
+    }
+
+    btnPrev.addEventListener("click", ()=>shift(-1));
+    btnNext.addEventListener("click", ()=>shift(1));
+    btnToday.addEventListener("click", ()=>{ state.baseDate=todayLocal(); render(); });
+    btnDay.addEventListener("click", ()=>setView("day"));
+    btnWeek.addEventListener("click", ()=>setView("week"));
+    btnMonth.addEventListener("click", ()=>setView("month"));
+
+    selAula.addEventListener("change", ()=>{
+      subscribeAula(selAula.value);
+    });
+
+    dateDesde.addEventListener("change", buildDaysList);
+    dateHasta.addEventListener("change", buildDaysList);
+
+    btnDaysAll.addEventListener("click", (e)=>{ e.preventDefault(); setAll(".dayChk", true); });
+    btnDaysNone.addEventListener("click",(e)=>{ e.preventDefault(); setAll(".dayChk", false); });
+    btnSlotsAll.addEventListener("click",(e)=>{ e.preventDefault(); setAll(".slotChk", true); });
+    btnSlotsNone.addEventListener("click",(e)=>{ e.preventDefault(); setAll(".slotChk", false); });
+
+    btnSave.addEventListener("click", (e)=>{ e.preventDefault(); save(); });
+
+    // ======== Init ========
+    dateDesde.value = fmtISOlocal(state.baseDate);
+    dateHasta.value = fmtISOlocal(state.baseDate);
+
+    buildSlotsList();
+    buildDaysList();
+
+    // marca hoy y primera franja
+    setTimeout(()=>{
+      const todayIso = fmtISOlocal(state.baseDate);
+      const dayToday = [...document.querySelectorAll(".dayChk")].find(x=>x.value===todayIso);
+      if (dayToday) dayToday.checked = true;
+      const firstSlot = document.querySelector(".slotChk");
+      if (firstSlot) firstSlot.checked = true;
+    }, 0);
+
+    // Suscripción inicial
+    subscribeAula(selAula.value);
+  </script>
 </body>
 </html>
